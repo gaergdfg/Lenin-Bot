@@ -1,17 +1,11 @@
 const fetch = require("node-fetch")
-// const fetchVideoInfo = require("youtube-info")
+const fetchVideoInfo = require("youtube-info")
 const { youtubeApiKey } = require("./settings.json")
 const youtubeRegex = /^https?:\/\/(www\.youtube\.com\/watch\?v\=|y2u\.be\/|youtu\.be\/)[a-zA-Z0-9-_]{11}[&|^a-zA-Z0-9-_]?/
-// const correctUrls = new Set([
-// 	"youtube.com",
-// 	"youtu.be",
-// 	"y2u.be"
-// ]);
 
 
 exports.getVideoId = async (arguments) => {
 	if (youtubeRegex.test(arguments[0])) {
-		console.log('regex is fine')
 		if (/[a-zA-Z0-9]{12}/.test(arguments)) {
 			throw "Incorrect Url"
 		}
@@ -24,7 +18,6 @@ exports.getVideoId = async (arguments) => {
 		}
 		return id
 	} else {
-		console.log("uh oh, we're in, calling for a response")
 		const query = arguments.join(" ")
 		const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=id&type=video&q=${encodeURIComponent(query)}&key=${youtubeApiKey}&type=video&maxResults=5`);
 		const json = await response.json();
@@ -44,5 +37,23 @@ exports.getVideoId = async (arguments) => {
 			res.items[i] = items[i].id.videoId
 		}
 		return res
+	}
+}
+
+
+exports.getVideoInfo = async (id) => {
+	let info
+	try {
+		info = await fetchVideoInfo(id)
+	} catch (err) {
+		throw err
+	}
+	if (!info.title || !info.duration) {
+		throw "Invalid getVideoInfo feedback"
+	}
+	return {
+		id: id,
+		title: info.title,
+		duration: info.duration
 	}
 }

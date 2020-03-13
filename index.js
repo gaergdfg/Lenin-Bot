@@ -49,6 +49,9 @@ bot.on("message", async (message) => {
         }
         return message.channel.send(reply)
     }
+    if (!message.guild.available) {
+        return message.channel.send("I can't operate in this server >__>")
+    }
 
     try {
         await command.execute(message, arguments)
