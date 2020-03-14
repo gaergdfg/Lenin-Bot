@@ -1,10 +1,10 @@
-const { prefix } = require("../settings.json");
+const { prefix } = require("../settings.json")
 
 module.exports = {
     name: "help",
     description: "List all commands or give info about a specific command",
+    usage: "{command name|null}",
     aliases: ["commands"],
-    usage: "{command name|nothing}",
     guildOnly: true,
     execute(message, args) {
 		const data = []

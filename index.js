@@ -1,4 +1,4 @@
-// https://discordapp.com/oauth2/authorize?client_id=CLIEND_ID&scope=bot
+// https://discordapp.com/oauth2/authorize?client_id=687636878274461708&scope=bot
 const Discord = require("discord.js")
 const bot = new Discord.Client()
 
@@ -45,7 +45,7 @@ bot.on("message", async (message) => {
     if (command.args && !arguments.length) {
         let reply = `You didn't provide any arguments dummy`;
         if (command.usage) {
-            reply += `\nThe proper usage would be: \`${prefix}${command.name} ${command.usage}\``;
+            reply += `\nThe proper usage would be: \`${prefix}${command.name} ${command.usage}\``
         }
         return message.channel.send(reply)
     }
@@ -56,14 +56,14 @@ bot.on("message", async (message) => {
     try {
         await command.execute(message, arguments)
     } catch (err) {
-        message.channel.send(err)
-        console.error(err)
+        message.channel.send("Uh, oh, something went wrong")
+        console.error("ERROR:\n", err)
     }
 })
 
 
 process.on("unhandledRejection", err => {
-	console.error("Unhandled promise rejection: ", err)
+	console.error("Unhandled promise rejection:\n", err)
 })
 
 

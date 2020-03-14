@@ -6,14 +6,12 @@ const youtubeRegex = /^https?:\/\/(www\.youtube\.com\/watch\?v\=|y2u\.be\/|youtu
 
 exports.getVideoId = async (arguments) => {
 	if (youtubeRegex.test(arguments[0])) {
-		if (/[a-zA-Z0-9]{12}/.test(arguments)) {
-			throw "Incorrect Url"
+		if (/[a-zA-Z0-9-_]{12}/.test(arguments)) {
+			throw "Incorrect Url (12+ signs)"
 		}
-		const res = /[a-zA-Z0-9]{11}/.exec(arguments[0])
+		const res = /[a-zA-Z0-9-_]{11}/.exec(arguments[0])
 		const id = res ? res[0] : null
-		console.log("i got the id: ", id)
 		if (!id) {
-			console.log("the id was trash tho")
 			throw "Couldn't find the video id"
 		}
 		return id
