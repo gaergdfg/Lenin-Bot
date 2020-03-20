@@ -19,7 +19,6 @@ module.exports = {
         } catch (err) {
             throw err
         }
-        console.log(res)
         if (!res.arr) {
             id = res
         } else {
@@ -44,7 +43,9 @@ async function addItemToQueue(message, id, server, forced) {
     try {
         videoInfo = await util.getVideoInfo(id)
         if (forced) {
-            server.queue = [server.queue[0]].concat([videoInfo]).concat(server.queue.slice(1))
+            server.queue = [server.queue[0]]
+                .concat([videoInfo])
+                .concat(server.queue.slice(1))
         } else {
             server.queue.push(videoInfo)
         }
@@ -61,13 +62,17 @@ async function addItemToQueue(message, id, server, forced) {
 
 async function play(connection, server) {
     try {
-        const stream = await ytdl(`https://www.youtube.com/watch?v=${server.queue[0].id}`, { filter: "audioonly" })
+        const stream = await ytdl(
+            `https://www.youtube.com/watch?v=${server.queue[0].id}`,
+            { filter: "audioonly" }
+        )
         stream.on("error", err => {
             throw err
         })
         const streamOptions = {
             volume: 1
         }
+
         server.dispatcher = await connection.play(stream, streamOptions)
         server.dispatcher.on("finish", () => {
             if (server.loopedSingle == true) {
