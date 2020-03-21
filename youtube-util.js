@@ -1,7 +1,8 @@
 const fetch = require("node-fetch")
 const fetchVideoInfo = require("youtube-info")
 const { youtubeApiKey } = require("./settings.json")
-const youtubeRegex = /^https?:\/\/(www\.youtube\.com\/watch\?v\=|y2u\.be\/|youtu\.be\/)[a-zA-Z0-9-_]{11}[&|^a-zA-Z0-9-_]?/
+const videoRegex = /^https?:\/\/(www\.youtube\.com\/watch\?v\=|y2u\.be\/|youtu\.be\/)[a-zA-Z0-9-_]{11}[&|^a-zA-Z0-9-_]?/
+const playlistRegex = /^https?:\/\/www\.youtube\.com\/playlist\?list\=[a-zA-Z0-9-_]{34}.*$/
 
 
 /**
@@ -9,7 +10,7 @@ const youtubeRegex = /^https?:\/\/(www\.youtube\.com\/watch\?v\=|y2u\.be\/|youtu
  * returns an array of the first 5 results of a Youtube API search
  */
 exports.getVideoId = async (arguments) => {
-	if (youtubeRegex.test(arguments[0])) {
+	if (videoRegex.test(arguments[0])) {
 		if (/[a-zA-Z0-9-_]{12}/.test(arguments)) {
 			throw "Incorrect Url (12+ signs)"
 		}
@@ -31,7 +32,7 @@ exports.getVideoId = async (arguments) => {
 		);
 		const json = await response.json();
 		if (json.error) {
-			console.error(json.error.message)
+			console.error("json.error.message ->\n", json.error.message)
 			throw "I couldn't get comrade YOUrij TUBEtov to cooperate"
 		}
 		const items = json.items;
@@ -52,14 +53,30 @@ exports.getVideoId = async (arguments) => {
 
 
 /**
- * Returns videos' id, title and duration
+ * Extracts the playlist id from a url
+ */
+exports.getPlaylistId = (url) => {
+	if (!playlistRegex.test(url)) {
+		throw "Invalid playlist link"
+	}
+	const res = /[a-zA-Z0-9-_]{34}/.exec(url)
+	const id = res ? res[0] : null
+	if (!id) {
+		throw "I couldn't find the playlist id"
+	}
+	return id
+}
+
+
+/**
+ * Returns videos id, title and duration
  */
 exports.getVideoInfo = async (id) => {
 	let info
 	try {
 		info = await fetchVideoInfo(id)
 	} catch (err) {
-		console.error(err)
+		console.error("getVideoInfo error ->\n", err)
 		throw "I can't fetch, who's the good boi then?"
 	}
 	if (!info.title || !info.duration) {
@@ -87,33 +104,41 @@ const getPlaylistQuery = (id) => {
 
 
 /**
- * Returns an array of info about all songs from Youtube API query
+ * Returns an array of all videos ids and their titles from a Youtube API query
  */
-const loadPlaylistPage = async (json) => {
-	let result = []
+const loadPlaylistPage = (json) => {
+	let page = []
 	for (let song of json.items) {
-		const info = this.getVideoInfo(song.snippet.resourceId.videoId)
-		result.push(info)
+		page.push({
+			id: song.snippet.resourceId.videoId,
+			title: song.snippet.title
+		})
 	}
-	return result
+	return page
 }
 
 
 /**
- * Returns an array of info about every song in a playlist
+ * Returns an array of all videos ids and their titles from a playlist
+ * Youtube API query
  */
-exports.loadPlaylistData = async(id) => {
-	let result = [], response, json, query
+exports.loadPlaylistQueryData = async(id) => {
+	let result = [], response, json = {}, query = ""
 	do {
 		query = getPlaylistQuery(id)
-		query += json.nextPageToken ? json.nextPageToken : ""
-		response = await fetch(query)
-		json = await response.json()
+		query += json.nextPageToken ? `&nextPageToken=${json.nextPageToken}` : ""
+		try {
+			response = await fetch(query)
+			json = await response.json()
+		} catch (err) {
+			throw err
+		}
 		if (json.error) {
-			console.error(json.error.message)
+			console.error("youtube-util.js -> json.error", json.error.message)
 			throw "I couldn't get comrade YOUrij TUBEtov to cooperate"
 		}
-		result.concat(loadPlaylistPage(json))
+		const currPage = await loadPlaylistPage(json)
+		result = result.concat(currPage)
 	} while (json.nextPageToken)
 	return result
 }

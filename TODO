@@ -8,8 +8,6 @@
 
 > play.js
     1. Chose what song out of 5 you want to play
-    2. Play a playlist <- almost done
 
 > youtube-util.js
-    1. Fix youtube regex
-    2. Add checking for playlist regex
+    1. Use video regex better
