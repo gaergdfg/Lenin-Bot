@@ -1,14 +1,22 @@
-const { prefix, myId } = require("../settings.json")
+const { myId } = require("../settings.json")
 
 module.exports = {
 	name: "eval",
 	description: "None of your business",
-	usage: "{code to execute}",
+	usage: "[-q] {code to execute}",
 	arguments: true,
-	execute(message) {
+	execute(message, arguments) {
 		if (message.author.id != myId) {
 			return
 		}
-		eval(message.content.slice((prefix + "eval ").length))
+		try {
+			if (arguments[0] == "-q") {
+				message.delete()
+				arguments.shift()
+			}
+			eval(arguments.join(" "))
+		} catch (err) {
+			console.error(err)
+		}
 	}
 }

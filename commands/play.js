@@ -1,4 +1,5 @@
-const util = require("../youtube-util.js")
+const youtubeUtil = require("../youtube-util.js")
+const discordUtil = require("../discord-util.js")
 const ytdl = require("ytdl-core")
 
 
@@ -6,9 +7,9 @@ module.exports = {
 	name: "play",
 	description: "Plays requested video(s)",
 	usage: "[-f|-list] {youtube link|requested phrase|youtube playlist link(with '-list' flag)}" +
-	"\nExtra options:" +
-	"\n[-f] (inserts a song right after the current song, jumping the queue)\n" +
-	"\n[-list] (adds a whole playlist to the queue)",
+		"\nExtra options:" +
+		"\n[-f] (inserts a song right after the current song, jumping the queue)\n" +
+		"\n[-list] (adds a whole playlist to the queue)",
 	args: true,
 	guildOnly: true,
 	async execute(message, arguments) {
@@ -35,8 +36,8 @@ async function addRequestToQueue(message, arguments) {
 
 	if (arguments[0] == "-list") {
 		try {
-			const id = util.getPlaylistId(arguments[1])
-			const playlistIds = await util.loadPlaylistQueryData(id)
+			const id = youtubeUtil.getPlaylistId(arguments[1])
+			const playlistIds = await youtubeUtil.loadPlaylistQueryData(id)
 
 			server.queue = server.queue.concat(playlistIds)
 		} catch (err) {
@@ -48,17 +49,18 @@ async function addRequestToQueue(message, arguments) {
 
 		let res
 		try {
-			res = await util.getVideoId(arguments)
-		} catch (err) {
-			throw err
-		}
-		if (!res.arr) {
-			id = res
-		} else {
-			id = res.items[0]
-		}
-		
-		try {
+			res = await youtubeUtil.getVideoId(arguments)
+			if (!res.arr) {
+				id = res
+			} else {
+				let songs = []
+				for (let i = 0; i < res.items.length; i++) {
+					const { title, duration } = await youtubeUtil.getVideoInfo(res.items[i])
+					songs.push(`${title} [${youtubeUtil.convertTime(duration)}]`)
+				}
+				discordUtil.sendEmbedQuestion(message, songs)
+				id = res.items[0]
+			}
 			await addItemToQueue(id, server, forced)
 		} catch (err) {
 			throw err
@@ -75,7 +77,7 @@ async function addRequestToQueue(message, arguments) {
  */
 async function addItemToQueue(videoId, server, forced) {
 	try {
-		const { id, title } = await util.getVideoInfo(videoId)
+		const { id, title } = await youtubeUtil.getVideoInfo(videoId)
 		const item = {
 			id: id,
 			title: title

@@ -1,6 +1,8 @@
 module.exports = {
 	name: "fplay",
-	description: "Plays a requested video right after the current song, jumping the queue",
+	description: 
+		"Plays a requested video right after the current song, " +
+		"jumping the queue",
 	usage: "{youtube link|requested phrase}",
 	args: true,
 	guildOnly: true,

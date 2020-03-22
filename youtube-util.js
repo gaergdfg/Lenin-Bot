@@ -11,9 +11,6 @@ const playlistRegex = /^https?:\/\/www\.youtube\.com\/playlist\?list\=[a-zA-Z0-9
  */
 exports.getVideoId = async (arguments) => {
 	if (videoRegex.test(arguments[0])) {
-		if (/[a-zA-Z0-9-_]{12}/.test(arguments)) {
-			throw "Incorrect Url (12+ signs)"
-		}
 		const res = /[a-zA-Z0-9-_]{11}/.exec(arguments[0])
 		const id = res ? res[0] : null
 		if (!id) {
@@ -22,15 +19,21 @@ exports.getVideoId = async (arguments) => {
 		return id
 	} else {
 		const query = arguments.join(" ")
-		const response = await fetch(
-			"https://www.googleapis.com/youtube/v3/search?" +
-			"part=id" + 
-			"&type=video" + 
-			`&q=${encodeURIComponent(query)}` +
-			`&key=${youtubeApiKey}` +
-			"&maxResults=5"
-		);
-		const json = await response.json();
+		let json = {}
+		try {
+			const response = await fetch(
+				"https://www.googleapis.com/youtube/v3/search?" +
+				"part=id" + 
+				"&type=video" + 
+				`&q=${encodeURIComponent(query)}` +
+				`&key=${youtubeApiKey}` +
+				"&maxResults=5"
+			);
+			json = await response.json();
+		} catch (err) {
+			console.error(err)
+			throw "I couldn't get comrade YOUrij TUBEtov to cooperate"
+		}
 		if (json.error) {
 			console.error("json.error.message ->\n", json.error.message)
 			throw "I couldn't get comrade YOUrij TUBEtov to cooperate"
@@ -141,4 +144,17 @@ exports.loadPlaylistQueryData = async(id) => {
 		result = result.concat(currPage)
 	} while (json.nextPageToken)
 	return result
+}
+
+
+exports.convertTime = (sec) => {
+	sec = parseInt(sec, 10)
+	var hours = Math.floor(sec / 3600)
+	var minutes = Math.floor((sec / 60) % 60)
+	var seconds = sec % 60
+	if(hours != "0" && minutes < 10)
+		minutes = "0" + minutes
+	if(seconds < 10)
+		seconds = "0" + seconds
+	return (hours != "0" ? (hours + ":") : "") + minutes + ":" + seconds
 }

@@ -18,7 +18,10 @@ module.exports = {
 			case "off":
 				server.loopedSingle = server.loopedAll = false
 			default:
-				message.channel.send(`The argument you provided is wrong, the correct arguments are: \`${this.usage}\``)
+				message.channel.send(
+					`The argument you provided is wrong, ` +
+					`the correct arguments are: \`${this.usage}\``
+				)
 		}
 	}
 }
